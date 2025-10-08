@@ -26,23 +26,20 @@ namespace OAA_1
         public void InsertRow(string[] values)
         {
             if (values.Length != table.GetLength(0))
-                throw new ArgumentException("Кількість значень не відповідає кількості стовпців.");
-
+                throw new ArgumentException("Забагато аргументів");
             int oldCols = table.GetLength(0);
             int oldRows = table.GetLength(1);
-
             string[,] newTable = new string[oldCols, oldRows + 1];
             for (int i = 0; i < oldCols; i++)
             {
                 for (int j = 0; j < oldRows; j++)
+                {
                     newTable[i, j] = table[i, j];
-
+                }
                 newTable[i, oldRows] = values[i];
             }
-
             table = newTable;
         }
-
         public void SelectFrom(string command)
         {
             string[] parts = command.Substring("select ".Length).Split(' ', 2);
@@ -188,4 +185,5 @@ namespace OAA_1
     }
 
 }
+
 
