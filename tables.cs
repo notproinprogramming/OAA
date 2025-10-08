@@ -10,9 +10,9 @@ namespace OAA_1
     {
         private string[,] table;
         private string name;
-        private int[] indexed;
+        /*private int[] indexed;*/
 
-        public tables(string tablename, string[] tableparam, int[] ifindexed)
+        public tables(string tablename, string[] tableparam, /*int[] ifindexed*/)
         {
             table = new string[tableparam.Length, 1];
             for (int i = 0; i < tableparam.Length; i++)
@@ -20,7 +20,7 @@ namespace OAA_1
                 table[i, 0] = tableparam[i];
             }
             name = tablename;
-            indexed = ifindexed;
+            //indexed = ifindexed;
         }
 
         public void InsertRow(string[] values)
@@ -188,4 +188,5 @@ namespace OAA_1
             }
         }
     }
+
 }
