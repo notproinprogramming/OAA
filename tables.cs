@@ -131,7 +131,6 @@ namespace OAA_1
         {
             string[] orderParts = order.Split(',');
 
-            // Зберігаємо список (стовпець, напрямок)
             var orders = new List<(int index, bool asc)>();
             foreach (string part in orderParts)
             {
@@ -143,8 +142,7 @@ namespace OAA_1
                     orders.Add((idx, asc));
             }
 
-            // Каскадне сортування
-            data = data.OrderBy(row => 0).ToList(); // щоб створити IOrderedEnumerable
+            data = data.OrderBy(row => 0).ToList(); 
             IOrderedEnumerable<string[]> sorted = null;
 
             for (int i = 0; i < orders.Count; i++)
@@ -190,3 +188,4 @@ namespace OAA_1
     }
 
 }
+
