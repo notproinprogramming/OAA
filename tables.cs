@@ -42,8 +42,15 @@ namespace OAA_1
         }
         public void SelectFrom(string command)
         {
-            string[] parts = command.Substring("select ".Length).Split(' ', 2);
-            string targetTable = parts[0];
+            command = command.Trim();
+            if (command.Length > 0 && command[command.Length - 1] == ';')
+            {
+                command = command.Remove(command.Length - 1, 1);
+                command = command.Trim();
+            }
+
+            string[] parts = command.Substring("select ".Length).Trim().Split(' ', 2);
+            string targetTable = parts[0].Trim();
 
             if (targetTable != name)
             {
