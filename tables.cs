@@ -49,7 +49,13 @@ namespace OAA_1
                 command = command.Trim();
             }
 
-            string[] parts = command.Substring("select ".Length).Trim().Split(' ', 2);
+            string afterSelect = command.Substring("select ".Length).Trim();
+            if (afterSelect.StartsWith("from ", StringComparison.OrdinalIgnoreCase))
+            {
+                afterSelect = afterSelect.Substring(4).Trim();
+            }
+
+            string[] parts = afterSelect.Split(' ', 2);
             string targetTable = parts[0].Trim();
 
             if (targetTable != name)
@@ -71,16 +77,25 @@ namespace OAA_1
                 if (orderIndex != -1)
                 {
                     condition = rest.Substring(whereIndex + 5, orderIndex - (whereIndex + 5)).Trim();
-                    order = rest.Substring(orderIndex + 8).Trim().TrimEnd(';');
+                    order = rest.Substring(orderIndex + 8).Trim();
                 }
                 else
                 {
-                    condition = rest.Substring(whereIndex + 5).Trim().TrimEnd(';');
+                    condition = rest.Substring(whereIndex + 5).Trim();
                 }
             }
             else if (orderIndex != -1)
             {
-                order = rest.Substring(orderIndex + 8).Trim().TrimEnd(';');
+                order = rest.Substring(orderIndex + 8).Trim();
+            }
+
+            if (condition != null)
+            {
+                condition = condition.Trim().TrimEnd(';').Trim();
+            }
+            if (order != null)
+            {
+                order = order.Trim().TrimEnd(';').Trim();
             }
 
             int rows = table.GetLength(1);
@@ -91,21 +106,19 @@ namespace OAA_1
             for (int r = 1; r < rows; r++)
             {
                 string[] row = new string[cols];
-
                 for (int c = 0; c < cols; c++)
                 {
                     row[c] = table[c, r];
                 }
-
                 data.Add(row);
             }
 
-            if (condition != null)
+            if (condition != null && condition != "")
             {
                 data = ApplyWhere(data, condition);
             }
 
-            if (order != null)
+            if (order != null && order != "")
             {
                 data = ApplyOrderBy(data, order);
             }
@@ -113,16 +126,34 @@ namespace OAA_1
             PrintTable(data);
         }
 
+        private int FindCharOutsideQuotes(string s, char ch)
+        {
+            bool q = false;
+            for (int i = 0; i < s.Length; i++)
+            {
+                if (s[i] == '"')
+                {
+                    q = !q;
+                    continue;
+                }
+                if (!q && s[i] == ch)
+                {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
         private List<string[]> ApplyWhere(List<string[]> data, string condition)
         {
-            string[] ops = condition.Split('>');
-            if (ops.Length != 2)
+            int op = FindCharOutsideQuotes(condition, '>');
+            if (op == -1)
                 return data;
 
-            string left = ops[0].Trim();
-            string right = ops[1].Trim();
+            string left = condition.Substring(0, op).Trim();
+            string right = condition.Substring(op + 1).Trim().TrimEnd(';').Trim();
 
-            if (right.Length > 0 && right[0] == '(' && right[right.Length - 1] == ')')
+            if (right.Length > 1 && right[0] == '(' && right[right.Length - 1] == ')')
             {
                 right = right.Substring(1, right.Length - 2).Trim();
             }
