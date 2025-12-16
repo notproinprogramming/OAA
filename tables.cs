@@ -8,11 +8,11 @@ namespace OAA_1
 {
     internal class tables
     {
-        private string[,] table;
-        private string name;
-        /*private int[] indexed;*/
+        public string[,] table;
+        public string name;
+        public int[] indexed;
 
-        public tables(string tablename, string[] tableparam, /*int[] ifindexed*/)
+        public tables(string tablename, string[] tableparam/*, int[] ifindexed*/)
         {
             table = new string[tableparam.Length, 1];
             for (int i = 0; i < tableparam.Length; i++)
@@ -26,7 +26,7 @@ namespace OAA_1
         public void InsertRow(string[] values)
         {
             if (values.Length != table.GetLength(0))
-                throw new ArgumentException("Забагато аргументів");
+              throw new ArgumentException("Забагато аргументів");
             int oldCols = table.GetLength(0);
             int oldRows = table.GetLength(1);
             string[,] newTable = new string[oldCols, oldRows + 1];
@@ -50,16 +50,17 @@ namespace OAA_1
                 Console.WriteLine($" Таблиця '{targetTable}' не знайдена (очікувалась '{name}')");
                 return;
             }
+
             string rest = (parts.Length > 1) ? parts[1].Trim() : "";
 
             string condition = null;
             string order = null;
 
-            if (rest.Contains("WHERE"))
-            {
-                int whereIndex = rest.IndexOf("WHERE");
-                int orderIndex = rest.IndexOf("ORDER_BY");
+            int whereIndex = rest.IndexOf("where", StringComparison.OrdinalIgnoreCase);
+            int orderIndex = rest.IndexOf("order_by", StringComparison.OrdinalIgnoreCase);
 
+            if (whereIndex != -1)
+            {
                 if (orderIndex != -1)
                 {
                     condition = rest.Substring(whereIndex + 5, orderIndex - (whereIndex + 5)).Trim();
@@ -70,28 +71,37 @@ namespace OAA_1
                     condition = rest.Substring(whereIndex + 5).Trim().TrimEnd(';');
                 }
             }
-            else if (rest.Contains("ORDER_BY"))
+            else if (orderIndex != -1)
             {
-                int orderIndex = rest.IndexOf("ORDER_BY");
                 order = rest.Substring(orderIndex + 8).Trim().TrimEnd(';');
             }
 
             int rows = table.GetLength(1);
             int cols = table.GetLength(0);
+
             List<string[]> data = new List<string[]>();
+
             for (int r = 1; r < rows; r++)
             {
                 string[] row = new string[cols];
+
                 for (int c = 0; c < cols; c++)
+                {
                     row[c] = table[c, r];
+                }
+
                 data.Add(row);
             }
 
             if (condition != null)
+            {
                 data = ApplyWhere(data, condition);
+            }
 
             if (order != null)
+            {
                 data = ApplyOrderBy(data, order);
+            }
 
             PrintTable(data);
         }
@@ -103,7 +113,17 @@ namespace OAA_1
                 return data;
 
             string left = ops[0].Trim();
-            string right = ops[1].Trim().Trim('"');
+            string right = ops[1].Trim();
+
+            if (right.Length > 0 && right[0] == '(' && right[right.Length - 1] == ')')
+            {
+                right = right.Substring(1, right.Length - 2).Trim();
+            }
+
+            if (right.Length >= 2 && right[0] == '"' && right[right.Length - 1] == '"')
+            {
+                right = right.Substring(1, right.Length - 2);
+            }
 
             int leftIndex = GetColumnIndex(left);
             int rightIndex = GetColumnIndex(right);
@@ -115,8 +135,8 @@ namespace OAA_1
 
             foreach (var row in data)
             {
-                string leftVal = row[leftIndex];
-                string rightVal = rightIndex != -1 ? row[rightIndex] : right;
+                string leftVal = row[leftIndex] ?? "";
+                string rightVal = rightIndex != -1 ? (row[rightIndex] ?? "") : (right ?? "");
                 if (string.Compare(leftVal, rightVal, StringComparison.Ordinal) > 0)
                     filtered.Add(row);
             }
@@ -183,7 +203,4 @@ namespace OAA_1
             }
         }
     }
-
 }
-
-
